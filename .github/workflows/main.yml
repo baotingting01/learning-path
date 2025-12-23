@@ -1,0 +1,45 @@
+name: Natural Human Activity Sim
+
+on:
+  schedule:
+    # 每天在北京时间上午 9 点到晚上 11 点之间随机触发
+    # 这里设定一个较宽的范围，具体随机由下方的 script 控制
+    - cron: '30 1,5,9,13 * * *' 
+  workflow_dispatch: # 允许你手动点击运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Random Delay
+        # 核心：随机等待 1 到 120 分钟，让每天的提交时间完全不固定
+        run: sleep $(( (RANDOM % 7200) + 1 ))s
+
+      - name: Update Learning Log
+        run: |
+          # 模拟真实开发：随机选择一个“学习笔记”更新
+          MESSAGES=(
+            "Update: Deep dive into Ethers.js provider logic"
+            "Refactor: Optimize gas estimation function"
+            "Docs: Add notes on Sybil resistance strategies"
+            "Chore: Update dependencies for web3 project"
+            "Fix: Minor bug in wallet connection sequence"
+            "Study: Researching Layer 2 scaling solutions"
+          )
+          # 随机抽取一条注释
+          SELECTED_MSG=${MESSAGES[$RANDOM % ${#MESSAGES[@]}]}
+          
+          # 将日期和随机消息写入一个更像“开发笔记”的文件名
+          echo "$(date +'%Y-%m-%d %H:%M:%S') - $SELECTED_MSG" >> developer_notes.md
+          
+          # 配置 Git 信息
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # 提交更改
+          git add .
+          git commit -m "$SELECTED_MSG"
+          git push
